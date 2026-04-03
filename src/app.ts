@@ -37,18 +37,25 @@ const app = express();
    MIDDLEWARE
 ========================= */
 app.use(cors({
-//   origin: [
-//     "https://tarekarradios.in",
-//     "https://www.tarekarradios.in",
-//     "https://admin.tarekarradios.in",
-//     "https://api.tarekarradios.in",
-//     "http://localhost:3000"
-//   ],
-origin: [
-   "http://localhost:3000",
-   "http://localhost:5004",
-   "http://localhost:3001",
-],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://localhost:5004",
+      "http://localhost:3001",
+      "https://vimalmarketing.in",
+      "https://www.vimalmarketing.in",
+      "https://admin.vimalmarketing.in",
+      "https://api.vimalmarketing.in",
+    ];
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
 
