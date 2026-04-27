@@ -2,9 +2,6 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 
-/* =========================
-   ROUTE IMPORTS
-========================= */
 import categoryRoutes from "./routes/category.routes";
 import serviceRoutes from "./routes/service.routes";
 import enquiryRoutes from "./routes/enquiry.routes";
@@ -13,7 +10,6 @@ import customerSupportRoutes from "./routes/customerSupport.routes";
 import contactRoutes from "./routes/contact.routes";
 import blogRoutes from "./routes/blog.routes";
 import dashboardRoutes from "./routes/dashboard.routes";
-
 
 import adminServiceRoutes from "./routes/adminService.routes";
 import adminCategoryRoutes from "./routes/adminCategory.routes";
@@ -26,12 +22,9 @@ import adminAuthRoutes from "./routes/adminAuth.routes";
 
 const app = express();
 
-/* =========================
-   MIDDLEWARE
-========================= */
-// 1. Place CORS first, before ANY other middleware or routes
-app.use(cors({
-  origin: (origin, callback) => {
+/* ── CORS ── */
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     const allowed = [
       "http://localhost:3000",
       "http://localhost:5004",
@@ -41,7 +34,6 @@ app.use(cors({
       "https://admin.vimalmarketing.in",
       "https://api.vimalmarketing.in",
     ];
-
     if (!origin || allowed.includes(origin)) {
       callback(null, true);
     } else {
@@ -49,27 +41,21 @@ app.use(cors({
     }
   },
   credentials: true,
-}));
+};
 
-// 2. Explicitly handle preflight requests for all routes
-app.options("*", cors());
-// 🔥 IMPORTANT FOR BASE64 IMAGES
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight — fixed wildcard syntax for path-to-regexp v8+
+app.options("/{*wildcard}", cors(corsOptions));
+
+/* ── BODY PARSING ── */
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-/* =========================
-   STATIC FILE SERVING
-   This makes uploaded images visible
-   http://localhost:5000/uploads/filename.jpg
-========================= */
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "../uploads"))
-);
+/* ── STATIC FILES ── */
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-/* =========================
-   PUBLIC ROUTES
-========================= */
+/* ── PUBLIC ROUTES ── */
 app.use("/api", categoryRoutes);
 app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/reviews", reviewRoutes);
@@ -79,9 +65,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-/* =========================
-   ADMIN ROUTES
-========================= */
+/* ── ADMIN ROUTES ── */
 app.use("/api/admin/services", adminServiceRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api/admin/reviews", adminReviewRoutes);
@@ -91,9 +75,7 @@ app.use("/api/admin/support", adminSupportRoutes);
 app.use("/api/admin/notifications", notificationRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 
-/* =========================
-   DEFAULT ROUTE
-========================= */
+/* ── DEFAULT ── */
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
