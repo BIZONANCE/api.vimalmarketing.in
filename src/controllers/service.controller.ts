@@ -2,21 +2,13 @@ import { Request, Response } from "express";
 import pool from "../config/db";
 
 /* =========================================================
-   GET SERVICES BY CATEGORY SLUG
-   Card Image = First Gallery Image
-   GET /api/services?categorySlug=loan-services
+   GET /api/services?categorySlug=some-slug
 ========================================================= */
-export const getServicesByCategory = async (
-  req: Request,
-  res: Response
-) => {
+export const getServicesByCategory = async (req: Request, res: Response) => {
   const { categorySlug } = req.query;
 
   if (!categorySlug || typeof categorySlug !== "string") {
-    return res.status(400).json({
-      success: false,
-      message: "categorySlug is required",
-    });
+    return res.status(400).json({ success: false, message: "categorySlug is required" });
   }
 
   try {
@@ -42,44 +34,24 @@ export const getServicesByCategory = async (
       [categorySlug]
     );
 
-    return res.status(200).json({
-      success: true,
-      data: result.rows,
-    });
-
+    return res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
     console.error("getServicesByCategory error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch services",
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch services" });
   }
 };
 
-
-
 /* =========================================================
-   GET SINGLE SERVICE DETAIL
-   Returns 5 Ordered Images
    GET /api/services/:slug
 ========================================================= */
-export const getServiceDetail = async (
-  req: Request,
-  res: Response
-) => {
+export const getServiceDetail = async (req: Request, res: Response) => {
   const { slug } = req.params;
 
   if (!slug) {
-    return res.status(400).json({
-      success: false,
-      message: "Service slug is required",
-    });
+    return res.status(400).json({ success: false, message: "Slug is required" });
   }
 
   try {
-    /* -----------------------------------------
-       1️⃣ Get Service Basic Info
-    ------------------------------------------ */
     const serviceResult = await pool.query(
       `
       SELECT
@@ -89,7 +61,7 @@ export const getServiceDetail = async (
         s.short_description,
         s.long_description,
         c.title AS category,
-        c.slug AS category_slug
+        c.slug  AS category_slug
       FROM services s
       JOIN categories c ON c.id = s.category_id
       WHERE s.slug = $1
@@ -100,17 +72,11 @@ export const getServiceDetail = async (
     );
 
     if (!serviceResult.rows.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Service not found",
-      });
+      return res.status(404).json({ success: false, message: "Service not found" });
     }
 
     const service = serviceResult.rows[0];
 
-    /* -----------------------------------------
-       2️⃣ Get All 5 Images (Ordered)
-    ------------------------------------------ */
     const imagesResult = await pool.query(
       `
       SELECT image_url, sort_order
@@ -123,16 +89,9 @@ export const getServiceDetail = async (
 
     service.images = imagesResult.rows;
 
-    return res.status(200).json({
-      success: true,
-      data: service,
-    });
-
+    return res.status(200).json({ success: true, data: service });
   } catch (error) {
     console.error("getServiceDetail error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch service",
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch service" });
   }
 };
