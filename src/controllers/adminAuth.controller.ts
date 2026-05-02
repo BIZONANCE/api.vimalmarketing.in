@@ -33,3 +33,5 @@ export const adminLogin = async (req: Request, res: Response) => {
 
   return res.json({ token });
 };
+  
+
